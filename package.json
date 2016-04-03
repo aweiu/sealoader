@@ -1,0 +1,29 @@
+{
+  "name": "sealoader",
+  "version": "1.0.0",
+  "description": "用于为seajs项目批量加载依赖",
+  "main": "main.js",
+  "dependencies": {
+    "colors": "^1.1.2",
+    "request": "^2.69.0"
+  },
+  "keywords": [
+    "[loader",
+    "seajs",
+    "seajs-libs",
+    "seajs-lib",
+    "lib",
+    "js]"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/328080339/sealoader.git"
+  },
+  "author": {
+    "name": "余阿伟"
+  },
+  "bin":{
+    "sealoader" : "main.js"
+  },
+  "license": "ISC"
+}
