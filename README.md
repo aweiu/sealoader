@@ -67,18 +67,18 @@ define(function (require, exports, module) {
         其实这一步对于熟悉seajs依赖路径的童鞋来说都是废话，大家可以完全根据自己的喜好来。
 
 ##三.安装+配置sealoader
-1. 执行如下shell命令安装sealoader
+1. 执行如下shell命令安装sealoader,***全局安装!***
 ```shell
 npm install sealoader -g
 ```
-2. 打开配置文件:sealoaderConfig.json
+2. 打开配置文件:sealoaderConfig.js
 ```shell
 sealoader -config
 ```
 配置参考如下:
 ```
 {
-    //需要加载依赖的js目录/js文件 运行sealoader指令将会对此目录下的所有js文件进行依赖模块下载 默认:"./js" 
+    //需要加载依赖的js目录/js文件 运行sealoader指令将会对此目录下的所有js文件进行依赖模块下载(相对命令行的启动目录) 默认:"./js" 
     "jsPath":"",
     //线上模块仓库地址 比如模块a的地址是:http://xxx.xxx.com/libs/js/a.js 那onlinePath须为"http://xxx.xxx.com"
     "onlinePath":"",
@@ -111,7 +111,7 @@ sealoader -config
 ```shell
 sealoader
 ```
-2. jsPath:获取指定目录下的所有js依赖/获取指定js的依赖,如:
+2. jsPath:获取指定目录下的所有js依赖/获取指定js的依赖(相对命令行的启动目录),如:
 ```shell
 sealoader ./js
 ```
@@ -129,7 +129,7 @@ sealoader -nocache
 ```shell
 sealoader index.js -nocache
 ```
-4. -config:打开配置文件:sealoaderConfig.json
+4. -config:打开配置文件:sealoaderConfig.js
 ```shell
 sealoader -config
 ```
@@ -147,7 +147,7 @@ sealoader -v
 ```
 
 ##五.附录
-贡献一份基于本人的线上前端插件仓库配置(sealoaderConfig.json)
+贡献一份基于本人的线上前端插件仓库配置(sealoaderConfig.js)
 ```
 {
     "jsPath":"./js",

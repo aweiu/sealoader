@@ -1,6 +1,6 @@
 {
   "name": "sealoader",
-  "version": "1.0.0",
+  "version": "1.2.3",
   "description": "用于为seajs项目批量加载依赖",
   "main": "main.js",
   "dependencies": {
@@ -22,8 +22,6 @@
   "author": {
     "name": "余阿伟"
   },
-  "bin":{
-    "sealoader" : "main.js"
-  },
+  "bin":"./bin/sealoader",
   "license": "ISC"
 }

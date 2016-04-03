@@ -1,6 +1,7 @@
 var request = require('request');
 var fs=require("fs");
 var path=require("path");
+var config=require("./sealoaderConfig");
 var exec = require('child_process').exec;
 require('colors');
 var cachedList=[];
@@ -33,7 +34,7 @@ var	downloadDeps=function(superJs) {
 	}(),
 		isOver=function () {
 			if(depsList.reduce()==0){
-				console.log((superJs+"所有依赖模块加载完毕!其依赖关系如下:").green);
+				console.log((path.normalize(superJs)+"所有依赖模块加载完毕!其依赖关系如下:").green);
 				depsList.show();
 			}
 		},
@@ -71,27 +72,24 @@ var	downloadDeps=function(superJs) {
 			  if(callBac)callBac();
 			});
 		}
-	console.log(("开始获取"+superJs+"的依赖...").yellow);
+	console.log(("开始获取"+path.normalize(superJs)+"的依赖...").yellow);
 	main(superJs);
 };
-function int(){
-	console.log(process.execPath);
-	// exec("start http://www.baidu.com");
-	// if(!fs.existsSync(process.cwd()+'/sealoaderConfig.json')){
-
-	// }
-	// fs.writeFileSync(process.cwd()+'/sealoaderConfig.json',defultConfig);
-	// var jsPath=config.jsPath;
-	// if(jsPath.indexOf(".js")!=-1){
-	// 	downloadDeps(jsPath);
-	// }else{
-	// 	fs.readdir(jsPath,function (err,files) {
-	// 	 	if (err) throw err;
-	// 	 	files.forEach(function (m) {
-	// 	 		downloadDeps(jsPath+"/"+m);
-	// 	 	})
-	// 	})
-	// }
+exports.do=function(jsPath,cache){
+	if(jsPath.indexOf(".js")!=-1){
+		downloadDeps(jsPath);
+	}else{
+		fs.readdir(jsPath,function (err,files) {
+		 	if (err) throw err;
+		 	if(files.length>0){
+		 		files.forEach(function (m) {
+			 		downloadDeps(jsPath+"/"+m);
+			 	})
+		 	}else{
+		 		console.log(("未在"+path.normalize(jsPath)+"目录下发现任何js文件,请检查").red);
+		 	} 	
+		})
+	}
 }
 function getSpace(num) {
 	var spaces="";
@@ -187,4 +185,3 @@ function mkdirsSync(dirpath, mode) {
     }
     return true; 
 }
-int();

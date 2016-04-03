@@ -1,4 +1,4 @@
-{
+module.exports={
 	//需要加载依赖的js目录/js文件 运行sealoader指令将会对此目录下的所有js文件进行依赖模块下载 
 	"jsPath":"",
 	//线上模块仓库地址 比如模块a的地址是:http://xxx.xxx.com/libs/js/a.js 那onlinePath须为"http://xxx.xxx.com"

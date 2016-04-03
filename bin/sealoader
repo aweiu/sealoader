@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+
+'use strict';
+var main=require('../main');
+var pkg = require('../package.json');
+var config=require('../sealoaderConfig');
+var exec = require('child_process').exec;
+var path=require("path");
+var fs=require("fs");
+require('colors');
+if(!config.onlinePath||config.onlinePath==""){
+  console.log("尚未配置仓库地址onlinePath".red);
+  console.log("打开配置命令:sealoader -config");
+  return;
+}
+var argument = process.argv;
+var basePath=module.filename.substring(0,module.filename.lastIndexOf("bin"));
+switch(argument[2]){
+  case "-v":
+    console.log(pkg.version);
+    break;
+  case "-h":
+    exec("start https://www.npmjs.com/package/sealoader");
+    break;
+  case "-menu":
+    var menuUrl=config.libsMenuUrl;
+    if(!menuUrl||menuUrl=="")menuUrl="http://awei.oss-cn-shenzhen.aliyuncs.com/libs.html";
+    exec("start "+menuUrl);
+    break;
+  case "-config":
+    exec("start "+basePath+"/sealoaderConfig.js");
+    break;
+  default:
+    var jsPath=argument[2],
+      nocache=argument.indexOf("-nocache"),
+      nowPath=process.cwd();
+    if(nocache==2)jsPath=argument[3];
+    if(!jsPath){
+      jsPath=config.jsPath;
+      if(!jsPath||jsPath=="")jsPath="js";
+    }
+    if(!fs.existsSync(nowPath+"/"+jsPath)){
+      console.log(("未发现命令行启动目录下存在"+jsPath+",请检查配置!").red);
+      console.log("打开配置命令:sealoader -config");
+    }else{
+      main.do(nowPath+"/"+jsPath,nocache==-1);
+    }
+}
