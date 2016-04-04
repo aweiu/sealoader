@@ -1,7 +1,10 @@
-# sealoader 插件加载器
+# sealoader 插件加载器—seajs前端开发解决方案
 ##介绍: 
-　主要是受够了市面上的各种包管理工具,干个屁大点事儿就得写一堆配置，于是就有了它！<br>
-　本加载器主要适用于使用seajs开发的团队。随着项目的积累，可能生产了很多seajs的通用模块，每次开干都得各种拷贝，但这个过程肯定不是轻松+愉快的。如果所有模块你都一次性拷贝过来的那当我没说，但强迫症患会觉得某些插件我没都用上为什么都要拷过来？它会直接导致项目中的js文件太多，结构混乱。而且如果插件更新了，你是不是还得去拷？这显然不科学！更蛋疼的情况：<br>
+　主要是受够了市面上的各种包管理工具,干个屁大点事儿就得写一堆配置！还有，我也不知道国内现在做技术的是什么风气，就喜欢把API文档写得云里雾里的，能愣是把一段中文说得像是从英文翻译过来的。聊点框架，设计模式的能说得跟玄学似的，感觉不会再爱了。。<br>
+  其中有个最让我印象深刻的博客，说xxx框架底层使用当前性能最高的Vanilla编写，哥当时就不淡定了，Vanilla?卧槽，这是个啥玩意？瞬间感觉自己文化水平太低，于是百度了半天。。Vanilla这货翻译过来就是原生js！CNM！<br>
+  最后再吐槽一下seajs官方推荐的包管理工具，spm，现在好像下架了，叫什么蚂蚁脚手架(哥翻译的)。作为seajs的亲爹，每个模块的依赖竟然还得手动地去配置文件里一个个地写,给自动分析下依赖会死吗？其它包管理工具就算了，你作为亲爸爸，你生成的那种目录结构，有没有考虑过洁癖症的感受?<br>
+  ok,吐槽完毕！(一般,要发布个新东西之前首先要做的就是先喷一下老的，这是礼节！)<br>
+  本插件适合使用seajs开发的团队，随着项目的积累，可能生产了很多通用模块，每次开干都得各种拷贝，但这个过程肯定不是轻松+愉快的。如果所有模块你都一次性拷贝过来的那当我没说，但强迫症患会觉得某些插件我没都用上为什么都要拷过来？它会直接导致项目中的js文件太多，结构混乱。而且如果插件更新了，你是不是还得去拷？这显然不科学！更蛋疼的情况：<br>
 　比如你要使用插件a，但插件a依赖于插件b，插件b又特么地依赖于插件c。。你能记得住？而且某些插件可能是动态依赖的，直接运行不会报错，相当容易造成依赖缺失。<br>
 　本插件干的事情就是一键检索项目中所有使用到的通用模块，自动下载模块的依赖，模块的依赖的依赖。。<br>
 　好了，不废话了，进入正题:
@@ -149,38 +152,40 @@ sealoader -v
 ##五.附录
 贡献一份基于本人的线上前端插件仓库配置(sealoaderConfig.js)
 ```
-{
-    "jsPath":"./js",
-    "onlinePath":"http://assets.jinkaimen.com",
-    "extensionToPath":{
+(function(){
+   return {
+      "jsPath":"./js",
+      "onlinePath":"http://assets.jinkaimen.com",
+      "extensionToPath":{
         "flash":"swf",
         "imgs":["gif","png"]
-    },
-    "otherDeps":{
+      },
+      "otherDeps":{
         "seajs-waiting":"seajs-waiting-loading.gif",
         "seajs-validate":[
-            "seajs-validate.css",
-            "seajs-validate-pop.png",
-            "seajs-validate-pop-square.png"
+          "seajs-validate.css",
+          "seajs-validate-pop.png",
+          "seajs-validate-pop-square.png"
         ],
         "seajs-autoPage":"seajs-autoPage-loading.gif",
         "seajs-modal-common":"PIE.htc",
         "seajs-common-tip":[
-            "seajs-common-tip-success.png",
-            "seajs-common-tip-fail.png"
+          "seajs-common-tip-success.png",
+          "seajs-common-tip-fail.png"
         ],
         "seajs-passwordWidget":[
-            "seajs-passwordWidget-del.png",
-            "seajs-passwordWidget.css",
-            "seajs-passwordWidget.html"
+          "seajs-passwordWidget-del.png",
+          "seajs-passwordWidget.css",
+          "seajs-passwordWidget.html"
         ],
         "seajs-upload":"seajs-upload-loading.gif",
         "seajs-topTip":"seajs-topTip.css",
         "seajs-gritter":"jquery.gritter.css",
         "seajs-calendar":"calendar.css",
         "seajs-utils":"ZeroClipboard.swf"
+      }
     }
-}
+})()
 ```
 插件目录页：(各插件的API文档待完善中...)<br>
 http://awei.oss-cn-shenzhen.aliyuncs.com/libs.html

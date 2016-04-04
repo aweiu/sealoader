@@ -1,37 +1,37 @@
 var request = require('request');
 var fs=require("fs");
 var path=require("path");
-var config=require("./sealoaderConfig");
-var exec = require('child_process').exec;
 require('colors');
-var cachedList=[];
+var cachedList=[],
+	isCache,
+	config;
 var	downloadDeps=function(superJs) {
 	var	depsList=new function(){
-		var list=[],length=0;
-		this.plus=function () {
-			 return ++length;
-		}
-		this.reduce=function () {
-			 return --length;
-		}
-		this.show=function(array,level){
-			array=array||list;
-			level=level||0;
-			for(var i=0,l=array.length;i<l;i++){
-				var a=array[i];
-				console.log(getSpace(level)+a.name);
-				if(a.deps)this.show(a.deps,++level);
+			var list=[],length=0;
+			this.plus=function () {
+				return ++length;
 			}
-		}
-		this.pushLevel=function (depsArray,name,deps) {
-			depsArray=depsArray||list;
-			depsArray.push({
-				name:name,
-				deps:deps
-			});
-			length++;
-		}
-	}(),
+			this.reduce=function () {
+				return --length;
+			}
+			this.show=function(array,level){
+				array=array||list;
+				level=level||0;
+				for(var i=0,l=array.length;i<l;i++){
+					var a=array[i];
+					console.log(getSpace(level)+a.name);
+					if(a.deps)this.show(a.deps,++level);
+				}
+			}
+			this.pushLevel=function (depsArray,name,deps) {
+				depsArray=depsArray||list;
+				depsArray.push({
+					name:name,
+					deps:deps
+				});
+				length++;
+			}
+		}(),
 		isOver=function () {
 			if(depsList.reduce()==0){
 				console.log((path.normalize(superJs)+"所有依赖模块加载完毕!其依赖关系如下:").green);
@@ -40,54 +40,56 @@ var	downloadDeps=function(superJs) {
 		},
 		main=function (jsPath,depsListLevel,callBac) {
 			fs.readFile(jsPath, "utf8",function (err, data) {
-			  if (err) throw err;
-			  getDeps(data).forEach(function (fileName) {
-			  	fileName=eval(fileName);
-			  	if(fileName.indexOf("/")==-1){
-			  		var level=[];
-			  		depsList.pushLevel(depsListLevel,fileName,level);
-				  	download(fileName,function(error,jsPath){
-			  			if(error){
-			  				errorTip(superJs+"的依赖加载失败!原因是:"+error);
-			  			}else{
-			  				main(jsPath,level,isOver);
-			  			}
-				  	},false);
-				  	var otherDeps=config.otherDeps[fileName];
-				  	if(otherDeps){
-				  		if(typeof otherDeps=="string")otherDeps=[otherDeps];
-				  		otherDeps.forEach(function(m){
-				  			depsList.pushLevel(level,m,null);
-				  			download(m,function (error) {
-				  				if(error){
-				  					errorTip(superJs+"的依赖加载失败!原因是:"+error);
-				  				}else{
-				  					isOver(superJs);
-				  				}
-				  			},false);
-				  		});
-				  	}  		
-				}
-			  })
-			  if(callBac)callBac();
+				if (err) throw err;
+				getDeps(data).forEach(function (fileName) {
+					fileName=eval(fileName);
+					if(fileName.indexOf("/")==-1){
+						var level=[];
+						depsList.pushLevel(depsListLevel,fileName,level);
+						download(fileName,function(error,jsPath){
+							if(error){
+								errorTip(superJs+"的依赖加载失败!原因是:"+error);
+							}else{
+								main(jsPath,level,isOver);
+							}
+						});
+						var otherDeps=config.otherDeps[fileName];
+						if(otherDeps){
+							if(typeof otherDeps=="string")otherDeps=[otherDeps];
+							otherDeps.forEach(function(m){
+								depsList.pushLevel(level,m,null);
+								download(m,function (error) {
+									if(error){
+										errorTip(superJs+"的依赖加载失败!原因是:"+error);
+									}else{
+										isOver(superJs);
+									}
+								});
+							});
+						}
+					}
+				})
+				if(callBac)callBac();
 			});
 		}
 	console.log(("开始获取"+path.normalize(superJs)+"的依赖...").yellow);
 	main(superJs);
 };
-exports.do=function(jsPath,cache){
+exports.do=function(jsPath,conf,cache){
+	config=conf;
+	isCache=cache;
 	if(jsPath.indexOf(".js")!=-1){
 		downloadDeps(jsPath);
 	}else{
 		fs.readdir(jsPath,function (err,files) {
-		 	if (err) throw err;
-		 	if(files.length>0){
-		 		files.forEach(function (m) {
-			 		downloadDeps(jsPath+"/"+m);
-			 	})
-		 	}else{
-		 		console.log(("未在"+path.normalize(jsPath)+"目录下发现任何js文件,请检查").red);
-		 	} 	
+			if (err) throw err;
+			if(files.length>0){
+				files.forEach(function (m) {
+					downloadDeps(jsPath+"/"+m);
+				})
+			}else{
+				console.log(("未在"+path.normalize(jsPath)+"目录下发现任何js文件,请检查").red);
+			}
 		})
 	}
 }
@@ -98,7 +100,7 @@ function getSpace(num) {
 	}
 	return spaces;
 }
-function download(url,callBac,cache){
+function download(url,callBac){
 	var urlA=url.split(".");
 	if(urlA.length>1){
 		var extension=urlA[urlA.length-1];
@@ -125,10 +127,10 @@ function download(url,callBac,cache){
 	}
 	var output='./libs/'+path+'/'+fileName;
 	url=config.onlinePath+"/libs/"+path+"/"+fileName;
-	if((cache!==false || cachedList.indexOf(url)!=-1) && fs.existsSync(output)){
+	if((isCache!==false || cachedList.indexOf(url)!=-1) && fs.existsSync(output)){
 		if(callBac){
 			setTimeout(function () {
-				 callBac(false,output);
+				callBac(false,output);
 			}, 0);
 		}
 		return;
@@ -154,11 +156,11 @@ function getDeps(data) {
 	["require","seajs.use","utils.use"].forEach(function (key) {
 		var dw1,dw2=0;
 		while (true) {
-		  	dw1=data.indexOf(key,dw2);
-		  	if(dw1==-1)break;
-		  	dw2=data.indexOf(")",dw1);
-		  	var ss=data.substring(dw1,dw2);
-		  	rValue.push.apply(rValue,ss.match(/["'].*?[",']/g));
+			dw1=data.indexOf(key,dw2);
+			if(dw1==-1)break;
+			dw2=data.indexOf(")",dw1);
+			var ss=data.substring(dw1,dw2);
+			rValue.push.apply(rValue,ss.match(/["'].*?[",']/g));
 		}
 	})
 	return rValue;
@@ -166,22 +168,22 @@ function getDeps(data) {
 function errorTip (tip) {
 	console.log(tip.red);
 }
-function mkdirsSync(dirpath, mode) { 
-    if (!fs.existsSync(dirpath)) {
-        var pathtmp;
-        dirpath.split("/").forEach(function(dirname) {
-            if (pathtmp) {
-                pathtmp = path.join(pathtmp, dirname);
-            }
-            else {
-                pathtmp = dirname;
-            }
-            if (!fs.existsSync(pathtmp)) {
-                if (!fs.mkdirSync(pathtmp, mode)) {
-                    return false;
-                }
-            }
-        });
-    }
-    return true; 
+function mkdirsSync(dirpath, mode) {
+	if (!fs.existsSync(dirpath)) {
+		var pathtmp;
+		dirpath.split("/").forEach(function(dirname) {
+			if (pathtmp) {
+				pathtmp = path.join(pathtmp, dirname);
+			}
+			else {
+				pathtmp = dirname;
+			}
+			if (!fs.existsSync(pathtmp)) {
+				if (!fs.mkdirSync(pathtmp, mode)) {
+					return false;
+				}
+			}
+		});
+	}
+	return true;
 }

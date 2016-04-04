@@ -1,7 +1,7 @@
 {
   "name": "sealoader",
-  "version": "1.2.3",
-  "description": "用于为seajs项目批量加载依赖",
+  "version": "1.9.2",
+  "description": "seajs前端开发解决方案",
   "main": "main.js",
   "dependencies": {
     "colors": "^1.1.2",
