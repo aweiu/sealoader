@@ -62,7 +62,7 @@ var	downloadDeps=function(superJs) {
 					for(var i=0,l=array.length;i<l;i++){
 						var a=array[i];
 						console.log(getSpace(level)+a.name);
-						if(a.deps)this.show(a.deps,++level);
+						if(a.deps)this.show(a.deps,level+1);
 					}
 				}
 				this.pushLevel=function (depsArray,name,deps) {
