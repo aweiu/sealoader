@@ -192,4 +192,4 @@ sealoader -v
 })()
 ```
 插件目录页：(各插件的API文档待完善中...)<br>
-http://awei.oss-cn-shenzhen.aliyuncs.com/libs.html
+[点我进入插件页](http://awei.oss-cn-shenzhen.aliyuncs.com/libs.html)
