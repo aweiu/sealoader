@@ -132,19 +132,23 @@ sealoader -nocache
 ```shell
 sealoader index.js -nocache
 ```
-4. -config:打开配置文件:sealoaderConfig.js
+4. -showdeps:在加载完成某js所有依赖之后输出其完整依赖关系
+```shell
+sealoader -showdeps
+```
+5. -config:打开配置文件:sealoaderConfig.js
 ```shell
 sealoader -config
 ```
-5. -menu:访问插件目录页
+6. -menu:访问插件目录页
 ```shell
 sealoader -menu
 ```
-6. -h:获取sealoader帮助
+7. -h:获取sealoader帮助
 ```shell
 sealoader -h
 ```
-7. -v:获取sealoader版本号
+8. -v:获取sealoader版本号
 ```shell
 sealoader -v
 ```

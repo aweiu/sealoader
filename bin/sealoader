@@ -43,7 +43,8 @@ if(fs.existsSync(configPath)){
   fs.writeFileSync(configPath,configTxt);
 }
 var config=eval(configTxt);
-switch(argument[2]){
+var ag2=(argument[2]==undefined?"":argument[2].toLowerCase());
+switch(ag2){
   case "-v":
     console.log(pkg.version);
     break;
@@ -65,18 +66,26 @@ switch(argument[2]){
       console.log("打开配置命令:sealoader -config");
       return;
     }
-    var jsPath=argument[2],
-      nocache=argument.indexOf("-nocache"),
-      nowPath=process.cwd();
-    if(nocache==2)jsPath=argument[3];
+    var jsPath,otherAg={
+      "-nocache":true,
+      "-showdeps":false
+    },nowPath=process.cwd();
+    for(var i=2;i<argument.length;i++){
+      var ag=(argument[i]==undefined?"":argument[i].toLowerCase());
+      if(otherAg.hasOwnProperty(ag)){
+        otherAg[ag]=!otherAg[ag];
+      }else{
+        jsPath=ag;
+      }
+    }
     if(!jsPath){
       jsPath=config.jsPath;
       if(!jsPath||jsPath=="")jsPath="js";
     }
-    if(!fs.existsSync(nowPath+"/"+jsPath)){
-      console.log(("未发现命令行启动目录下存在"+jsPath+",请检查配置!").red);
+    if(!fs.existsSync(path.join(nowPath,jsPath))){
+      console.log(("未发现命令行启动目录下存在'"+path.normalize(jsPath)+"'文件夹或文件,请检查配置!").red);
       console.log("打开配置命令:sealoader -config");
     }else{
-      main.do(nowPath+"/"+jsPath,config,nocache==-1);
+      main.do(nowPath+"/"+jsPath,config,otherAg["-nocache"],otherAg["-showdeps"]);
     }
 }
