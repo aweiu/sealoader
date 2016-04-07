@@ -261,15 +261,18 @@ function myRequest(url,callBac,output){
 				if(callBac)callBac("获取"+url+"远端服务器异常",output);
 			}
 		}).pipe(fs.createWriteStream(output));
+		checkTimeout();
 	};
-	setTimeout(function(){
-		if(timeOut){
-			if((retry++)>=3){
-				if(callBac)callBac("获取"+url+"超时且超过最大重试次数!请检查",output);
-			}else{
-				main();
+	var checkTimeout=function(){
+		setTimeout(function(){
+			if(timeOut){
+				if((retry++)>=3){
+					if(callBac)callBac("获取"+url+"超时且超过最大重试次数!请检查",output);
+				}else{
+					main();
+				}
 			}
-		}
-	},5000);
+		},5000);
+	};
 	main();
 }
