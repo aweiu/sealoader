@@ -81,6 +81,7 @@ var	downloadDeps=function(superJs) {
 						console.log('构建任务全部完毕!'.green);
 						console.log('提示: sealoader -v 可检测sealoader最新版本'.yellow);
 						errorFuc.show();
+						process.exit();
 					}
 				}
 			},
@@ -184,20 +185,13 @@ function download(baseFileName,callBac){
 		return;
 	}
 	mkdirsSync(path.join("libs",toPath.path));
-	request(url,function(error,response){
-		if (!error) {
-			if(response.statusCode==200){
-				cachedList.push(url);
-				if(callBac)callBac(false,output);
-			}else{
-				fs.unlink(output);
-				if(callBac)callBac("获取"+url+"失败!请检查",output);
-			}
-		}else{
-			fs.unlink(output);
-			if(callBac)callBac("获取"+url+"远端服务器异常",output);
+	var timeOut=true;
+	setTimeout(function(){
+		if(timeOut){
+
 		}
-	}).pipe(fs.createWriteStream(output));
+	},5000);
+	myRequest(url,callBac,output);
 }
 function checkFile(filePath) {
 	try{
@@ -253,4 +247,35 @@ function downloadOnly(fileName,t1,t2){
 			console.log((t2+pro.getNow()).green);
 		}
 	})
+}
+function myRequest(url,callBac,output){
+	var timeOut=true,retry= 0;
+	var main=function(){
+		request(url,function(error,response){
+			if(!timeOut)return;
+			timeOut=false;
+			if (!error) {
+				if(response.statusCode==200){
+					cachedList.push(url);
+					if(callBac)callBac(false,output);
+				}else{
+					fs.unlink(output);
+					if(callBac)callBac("获取"+url+"失败!请检查",output);
+				}
+			}else{
+				fs.unlink(output);
+				if(callBac)callBac("获取"+url+"远端服务器异常",output);
+			}
+		}).pipe(fs.createWriteStream(output));
+	};
+	setTimeout(function(){
+		if(timeOut){
+			if((retry++)>=3){
+				if(callBac)callBac("获取"+url+"超时且超过最大重试次数!请检查",output);
+			}else{
+				main();
+			}
+		}
+	},5000);
+	main();
 }
