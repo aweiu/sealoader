@@ -1,6 +1,6 @@
 {
   "name": "sealoader",
-  "version": "1.9.8",
+  "version": "1.9.9",
   "description": "seajs前端开发解决方案",
   "main": "main.js",
   "dependencies": {

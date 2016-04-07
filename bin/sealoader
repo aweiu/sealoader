@@ -102,7 +102,7 @@ switch(ag2){
     }
 }
 function upDate() {
-    console.log('正在检测更新...');
+    console.log('正在检测更新...'.green);
     request("http://awei.oss-cn-shenzhen.aliyuncs.com/sealoader-ver.txt",function(error,response,body){
       if (!error) {
         if(response.statusCode==200){
@@ -116,7 +116,7 @@ function upDate() {
               stdin.setEncoding('utf8');//设置输入流的编码
               stdin.on('data',function(data){
                 if(data.replace(/\s/g,"")=="y"){
-                  console.log('正在更新..');
+                  console.log('正在更新...'.green);
                   exec("npm install sealoader -g",function (error,stdout) {
                      if(error)console.log('更新失败！请手动 npm install sealoader -g'.red);
                      console.log(stdout);
