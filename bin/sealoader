@@ -50,7 +50,7 @@ var config=eval(configTxt);
 var ag2=(argument[2]==undefined?"":argument[2].toLowerCase());
 switch(ag2){
   case "-v":
-    console.log(pkg.version);
+    console.log(当前版本:pkg.version);
     upDate();
     break;
   case "-h":
