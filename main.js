@@ -185,12 +185,6 @@ function download(baseFileName,callBac){
 		return;
 	}
 	mkdirsSync(path.join("libs",toPath.path));
-	var timeOut=true;
-	setTimeout(function(){
-		if(timeOut){
-
-		}
-	},5000);
 	myRequest(url,callBac,output);
 }
 function checkFile(filePath) {
