@@ -1,0 +1,4 @@
+﻿{
+	ver:"1.9.7",
+	intro:"新增api:-online\n新增配置项:otherDepKey\n新增检测更新\n完善消息提示\n忽略非seajs文件的依赖分析\n忽略空文件\n具体请访问:https://www.npmjs.com/package/sealoader"
+}
