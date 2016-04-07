@@ -124,6 +124,8 @@ function upDate() {
                 }
                 stdin.pause();
               }); //
+            }else{
+                console.log("当前版本已为最新版!".green);
             }
           }catch(e){
             console.log('获取最新版本失败,请访问https://www.npmjs.com/package/sealoader获取更新'.red);
