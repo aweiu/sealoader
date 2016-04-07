@@ -2,41 +2,45 @@
 'use strict';
 var main=require('../main');
 var pkg = require('../package.json');
-var configTxt='(function(){\n'+
-        '   return {\n'+
-        '      //需要加载依赖的js目录/js文件 运行sealoader指令将会对此目录下的所有js文件进行依赖模块下载\n'+
-        '      "jsPath":"",\n'+
-        '      //线上模块仓库地址 比如模块a的地址是:http://xxx.xxx.com/libs/js/a.js 那onlinePath须为"http://xxx.xxx.com"\n'+
-        '      "onlinePath":"",\n'+
-        '      //后缀路径映射\n'+
-        '      //如果不写则默认目录和后缀名一致 就像a.js如果在/libs/js,目录下,那么js文件就无须配置后缀路径映射\n'+
-        '      //比如:要加载通用模块a.js,但sealoader只知道模块都在/libs文件夹里，但不知道a.js在libs的具体哪个文件夹里\n'+
-        '      // 如果extensionToPath没有对js的文件后缀进行配置，那sealoader就会默认a.js是在/libs/js文件夹里\n'+
-        '      // 如果extensionToPath中有js:"myJs",那sealoader就会去/libs/myJs中去加载a.js\n'+
-        '      "extensionToPath":{\n'+
-        '          // 示例:\n'+
-        '          // "flash":"swf",\n'+
-        '          // "imgs":["gif","png"]\n'+
-        '      },\n'+
-        '      //其它非js依赖配置\n'+
-        '      //js模块依赖sealoader可以通过源码解析得出,但一些其他的资源文件,比如图片,css还是需要去手工配置一下的\n'+
-        '      "otherDeps":{\n'+
-        '          //示例:\n'+
-        '          //"a":"a.png",\n'+
-        '          //"b":["b.css","b.png"],\n'+
-        '          //"c":["js/c.png"] 这么写则代表sealoader加载c.png会从/libs/js/中去取\n'+
-        '      },\n'+
-        '      //如果你们有一个插件目录页面的话 可以将页面地址写在这儿 执行"-menu"命令即会访问\n'+
-        '      //默认:http://awei.oss-cn-shenzhen.aliyuncs.com/libs.html\n'+
-        '      "libsMenuUrl":""\n'+
-        '   }\n'+
-    '})()\n';
-var exec = require('child_process').exec;
+var request = require('request');
+var exec=require('child_process').exec;
 var path=require("path");
 var fs=require("fs");
+var os=require("os");
+var stdin=process.stdin,
+    stdout=process.stdout;
 require('colors');
-var argument = process.argv;
-var configPath=module.filename.substring(0,module.filename.indexOf("sealoader"))+"sealoaderConfig.js";
+var configTxt='(function(){\r\n'+
+        '   return {\r\n'+
+        '      //需要加载依赖的js目录/js文件 运行sealoader指令将会对此目录下的所有js文件进行依赖模块下载\r\n'+
+        '      "jsPath":"",\r\n'+
+        '      //线上模块仓库地址 比如模块a的地址是:http://xxx.xxx.com/libs/js/a.js 那onlinePath须为"http://xxx.xxx.com"\r\n'+
+        '      "onlinePath":"",\r\n'+
+        '      //后缀路径映射\r\n'+
+        '      //如果不写则默认目录和后缀名一致 就像a.js如果在/libs/js,目录下,那么js文件就无须配置后缀路径映射\r\n'+
+        '      //比如:要加载通用模块a.js,但sealoader只知道模块都在/libs文件夹里，但不知道a.js在libs的具体哪个文件夹里\r\n'+
+        '      // 如果extensionToPath没有对js的文件后缀进行配置，那sealoader就会默认a.js是在/libs/js文件夹里\r\n'+
+        '      // 如果extensionToPath中有js:"myJs",那sealoader就会去/libs/myJs中去加载a.js\r\n'+
+        '      "extensionToPath":{\r\n'+
+        '          // 示例:\r\n'+
+        '          // "flash":"swf",\r\n'+
+        '          // "imgs":["gif","png"]\r\n'+
+        '      },\r\n'+
+        '      //其它非js依赖配置\r\n'+
+        '      //js模块依赖sealoader可以通过源码解析得出,但一些其他的资源文件,比如图片,css还是需要去手工配置一下的\r\n'+
+        '      "otherDeps":{\r\n'+
+        '          //示例:\r\n'+
+        '          //"a":"a.png",\r\n'+
+        '          //"b":["b.css","b.png"],\r\n'+
+        '          //"c":["js/c.png"] 这么写则代表sealoader加载c.png会从/libs/js/中去取\r\n'+
+        '      },\r\n'+
+        '      //其它依赖分析关键字,默认:["require","seajs.use"]\r\n'+
+        '      //注意:如果目标js为压缩版本,请在压缩设置中把otherDepKey中的关键字排除\r\n'+
+        '      "otherDepKey":[],\r\n'+
+        '   }\r\n'+
+    '})()\r\n',
+  argument = process.argv,
+  configPath=path.normalize(module.filename.substring(0,module.filename.indexOf("sealoader"))+"sealoaderConfig.js");
 if(fs.existsSync(configPath)){
   configTxt=fs.readFileSync(configPath,"utf8");
 }else{
@@ -47,18 +51,24 @@ var ag2=(argument[2]==undefined?"":argument[2].toLowerCase());
 switch(ag2){
   case "-v":
     console.log(pkg.version);
+    upDate();
     break;
   case "-h":
-    exec("start https://www.npmjs.com/package/sealoader");
-    break;
-  case "-menu":
-    var menuUrl=config.libsMenuUrl;
-    if(!menuUrl||menuUrl=="")menuUrl="http://awei.oss-cn-shenzhen.aliyuncs.com/libs.html";
-    exec("start "+menuUrl);
+    console.log(pkg.readme);
     break;
   case "-config":
-    console.log("sealoaderConfig.js路径(不是我不想帮你打开,考虑到各系统的兼容,姑且输出路径吧==):");
-    console.log(path.normalize(configPath));
+    console.log("sealoaderConfig.js路径:");
+    console.log(configPath);
+    console.log('尝试自动打开..');
+    var osType=os.type().toLowerCase();
+    if(osType.indexOf("windows")!=-1){
+      exec("notepad "+configPath);
+    }else if(osType.indexOf("darwin")!=-1){
+      exec("open /Applications/TextEdit.app "+configPath);
+    }else{
+      exec("notepad "+configPath);
+      exec("open /Applications/TextEdit.app "+configPath);
+    }
     break;
   default:
     if(!config.onlinePath||config.onlinePath==""){
@@ -68,24 +78,61 @@ switch(ag2){
     }
     var jsPath,otherAg={
       "-nocache":true,
-      "-showdeps":false
+      "-showdeps":false,
+      "-online":false
     },nowPath=process.cwd();
     for(var i=2;i<argument.length;i++){
       var ag=(argument[i]==undefined?"":argument[i].toLowerCase());
       if(otherAg.hasOwnProperty(ag)){
         otherAg[ag]=!otherAg[ag];
       }else{
-        jsPath=ag;
+        jsPath=argument[i];
       }
     }
     if(!jsPath){
       jsPath=config.jsPath;
       if(!jsPath||jsPath=="")jsPath="js";
     }
-    if(!fs.existsSync(path.join(nowPath,jsPath))){
+    var online=otherAg["-online"];
+    if(!online&!fs.existsSync(path.join(nowPath,jsPath))){
       console.log(("未发现命令行启动目录下存在'"+path.normalize(jsPath)+"'文件夹或文件,请检查配置!").red);
       console.log("打开配置命令:sealoader -config");
     }else{
-      main.do(nowPath+"/"+jsPath,config,otherAg["-nocache"],otherAg["-showdeps"]);
+      main.do(online?jsPath:nowPath+"/"+jsPath,config,otherAg);
     }
+}
+function upDate() {
+    console.log('正在检测更新...');
+    request("http://awei.oss-cn-shenzhen.aliyuncs.com/sealoader-ver.txt",function(error,response,body){
+      if (!error) {
+        if(response.statusCode==200){
+          try{
+            var ver=eval("("+body+")");
+            if(ver.ver!=pkg.version){
+              console.log(('检测到新版本'+ver.ver+"更新日志:").green);
+              console.log(ver.intro);
+              console.log('   是否更新?输入"y":更新,其它输入:不更新'.yellow);
+              stdin.resume();  // 等待用户输入
+              stdin.setEncoding('utf8');//设置输入流的编码
+              stdin.on('data',function(data){
+                if(data.replace(/\s/g,"")=="y"){
+                  console.log('正在更新..');
+                  exec("npm install sealoader -g",function (error,stdout) {
+                     if(error)console.log('更新失败！请手动 npm install sealoader -g'.red);
+                     console.log(stdout);
+                  });
+                }
+                stdin.pause();
+              }); //
+            }
+          }catch(e){
+            console.log('获取最新版本失败,请访问https://www.npmjs.com/package/sealoader获取更新'.red);
+          }
+        }else{
+          console.log('获取最新版本失败,请访问https://www.npmjs.com/package/sealoader获取更新'.red);
+        }
+      }else{
+        console.log('获取最新版本失败,请访问https://www.npmjs.com/package/sealoader获取更新'.red);
+      }
+    })
 }

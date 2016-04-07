@@ -103,9 +103,9 @@ sealoader -config
         //"b":["b.css","b.png"],
         //"c":["js/c.png"] 这么写则代表sealoader加载c.png会从/libs/js/中去取
     },
-    //如果你们有一个插件目录页面的话 可以将页面地址写在这儿 执行"-menu"命令即会访问
-    //默认:http://awei.oss-cn-shenzhen.aliyuncs.com/libs.html
-    "libsMenuUrl":""
+    //其它依赖分析关键字,默认:["require","seajs.use"]
+    //注意:如果目标js为压缩版本,请在压缩设置中把otherDepKey中的关键字排除
+    "otherDepKey":[]
 }
 ```
 
@@ -136,19 +136,24 @@ sealoader index.js -nocache
 ```shell
 sealoader -showdeps
 ```
-5. -config:打开配置文件:sealoaderConfig.js
+5. -online:单独加载某线上资源(及其依赖)
+```shell
+//js文件可省略后缀 代表加载线上模块xxx.js 只要写文件名就好
+sealoader xxx -online
+```
+```shell
+//代表加载线上图片xxx.png
+sealoader xxx.png -online
+```
+6. -config:打开配置文件:sealoaderConfig.js
 ```shell
 sealoader -config
-```
-6. -menu:访问插件目录页
-```shell
-sealoader -menu
 ```
 7. -h:获取sealoader帮助
 ```shell
 sealoader -h
 ```
-8. -v:获取sealoader版本号
+8. -v:获取sealoader版本号+检测更新(<font color=red>目前为公测版会经常更新,请多关注<font>)
 ```shell
 sealoader -v
 ```
@@ -159,7 +164,7 @@ sealoader -v
 (function(){
    return {
       "jsPath":"./js",
-      "onlinePath":"http://assets.jinkaimen.com",
+      "onlinePath":"http://awei.oss-cn-shenzhen.aliyuncs.com",
       "extensionToPath":{
         "flash":"swf",
         "imgs":["gif","png"]
@@ -187,9 +192,19 @@ sealoader -v
         "seajs-gritter":"jquery.gritter.css",
         "seajs-calendar":"calendar.css",
         "seajs-utils":"ZeroClipboard.swf"
-      }
+      },
+      "otherDepKey":"utils.use"
     }
 })()
 ```
 插件目录页：(各插件的API文档待完善中...)<br>
 [点我进入插件页](http://awei.oss-cn-shenzhen.aliyuncs.com/libs.html)
+
+##六.更新日志:
+    2016.04.07:
+    新增api:-online
+    新增配置项:otherDepKey
+    新增检测更新
+    完善消息提示
+    忽略非seajs文件的依赖分析
+    忽略空文件
