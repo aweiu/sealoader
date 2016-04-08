@@ -2,8 +2,7 @@ var request = require('request');
 var fs=require("fs");
 var path=require("path");
 require('colors');
-var cachedList=[],
-	otherAg,
+var	otherAg,
 	config,
 	pro={
 		len:0,
@@ -172,21 +171,6 @@ function getToPath(baseFileName){
 		outPut:path.join("libs",toPath,fileName)
 	}
 }
-function download(baseFileName,callBac){
-	var toPath=getToPath(baseFileName);
-	var output=toPath.outPut;
-	var url=config.onlinePath+"/"+output.replace(/\\/g,"/");
-	if((otherAg["-nocache"]!==false || cachedList.indexOf(url)!=-1) && checkFile(output)){
-		if(callBac){
-			setTimeout(function () {
-				callBac(false,output);
-			}, 0);
-		}
-		return;
-	}
-	mkdirsSync(path.join("libs",toPath.path));
-	myRequest(url,callBac,output);
-}
 function checkFile(filePath) {
 	try{
 		return fs.existsSync(filePath)&&fs.statSync(filePath).size>0;
@@ -242,6 +226,44 @@ function downloadOnly(fileName,t1,t2){
 		}
 	})
 }
+var cacheFuc=new function () {
+	var cachedList=[],
+		requestList={};
+	this.add=function (url) {
+		cachedList.push(url);
+	}
+	this.isCache=function (url,output) {
+		return (otherAg["-nocache"]!==false || cachedList.indexOf(url)!=-1) && checkFile(output);
+	}
+	this.addCallBac=function (url,callBac) {
+		var rValue=requestList.hasOwnProperty(url);
+		if(!rValue)requestList[url]=[];
+		if(callBac)requestList[url].push(callBac);
+		return rValue;
+	}
+	this.doCallBac=function (url,error,output) {
+		requestList[url].forEach(function(m){
+			m(error,output);
+		})
+		delete requestList[url];
+	}
+}();
+function download(baseFileName,callBac){
+	var toPath=getToPath(baseFileName);
+	var output=toPath.outPut;
+	var url=config.onlinePath+"/"+output.replace(/\\/g,"/");
+	if(cacheFuc.isCache(url,output)){
+		if(callBac){
+			setTimeout(function () {
+				callBac(false,output);
+			}, 0);
+		}
+		return;
+	}
+	if(cacheFuc.addCallBac(url,callBac))return;
+	mkdirsSync(path.join("libs",toPath.path));
+	myRequest(url,callBac,output);
+}
 function myRequest(url,callBac,output){
 	var timeOut=true,retry= 0;
 	var main=function(){
@@ -250,15 +272,14 @@ function myRequest(url,callBac,output){
 			timeOut=false;
 			if (!error) {
 				if(response.statusCode==200){
-					cachedList.push(url);
-					if(callBac)callBac(false,output);
+					cacheFuc.doCallBac(url,false,output);
 				}else{
 					fs.unlink(output);
-					if(callBac)callBac("获取"+url+"失败!请检查",output);
+					cacheFuc.doCallBac(url,"获取"+url+"失败!请检查",output);
 				}
 			}else{
 				fs.unlink(output);
-				if(callBac)callBac("获取"+url+"远端服务器异常",output);
+				cacheFuc.doCallBac(url,"获取"+url+"远端服务器异常",output);
 			}
 		}).pipe(fs.createWriteStream(output));
 		checkTimeout();
