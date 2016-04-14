@@ -281,33 +281,34 @@ function download(baseFileName,callBac){
 	myRequest(url,callBac,output);
 }
 function myRequest(url,callBac,output){
-	var timeOut=true,retry= 0;
+	var timeOut=true,retry= 0,timer;
 	var main=function(){
-		request(url,function(error,response){
-			if(!timeOut)return;
-			timeOut=false;
-			if (!error) {
-				if(response.statusCode==200){
-					cacheFuc.doCallBac(url,false,output);
+		var reader=request(url,function(error,response){
+				clearTimeout(timer);
+				if(!timeOut)return;
+				timeOut=false;
+				if (!error) {
+					if(response.statusCode!=200){
+						myError="获取"+url+"失败!请检查";
+					}
 				}else{
-					fs.unlink(output);
-					cacheFuc.doCallBac(url,"获取"+url+"失败!请检查",output);
+					myError="获取"+url+"远端服务器异常";
 				}
-			}else{
-				fs.unlink(output);
-				cacheFuc.doCallBac(url,"获取"+url+"远端服务器异常",output);
-			}
-		}).pipe(fs.createWriteStream(output));
+			}),
+			writer=fs.createWriteStream(output),myError=false;
+		writer.on("finish",function(){
+			if(myError)fs.unlink(output);
+			cacheFuc.doCallBac(url,myError,output);
+		});
+		reader.pipe(writer);
 		checkTimeout();
 	};
 	var checkTimeout=function(){
-		setTimeout(function(){
-			if(timeOut){
-				if((retry++)>=3){
-					if(callBac)callBac("获取"+url+"超时且超过最大重试次数!请检查",output);
-				}else{
-					main();
-				}
+		timer=setTimeout(function(){
+			if((retry++)>=3){
+				if(callBac)callBac("获取"+url+"超时且超过最大重试次数!请检查",output);
+			}else{
+				main();
 			}
 		},5000);
 	};
