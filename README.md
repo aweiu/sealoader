@@ -188,6 +188,7 @@ sealoader -v
           "seajs-passwordWidget.html"
         ],
         "seajs-upload":"seajs-upload-loading.gif",
+        "seajs-uploadImgs":"seajs-uploadImgs-loading.gif",
         "seajs-topTip":"seajs-topTip.css",
         "seajs-gritter":"jquery.gritter.css",
         "seajs-calendar":"calendar.css",
@@ -212,3 +213,9 @@ sealoader -v
 
     2.0.4(2016.04.08):
     优化缓存机制,极大地提升模块加载速度
+
+    2.0.6(2016.04.14)
+    完善进度提示
+    修复依赖完整js名(含后缀)导致otherDeps不加载
+    修复加载线上模块不加载其依赖的bug(-online)
+    更新readMe中的附录

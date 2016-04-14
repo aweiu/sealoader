@@ -9,6 +9,14 @@ var	otherAg,
 		val:0,
 		getNow:function(){
 			return "(总进度:"+(++this.val)+"/"+this.len+")"
+		},
+		isOver:function(){
+			if(this.val>=this.len){
+				console.log('构建任务全部完毕!'.green);
+				console.log('提示: sealoader -v 可检测sealoader最新版本'.yellow);
+				errorFuc.show();
+				process.exit();
+			}
 		}
 	};
 exports.do=function(jsPath,conf,oa){
@@ -16,11 +24,11 @@ exports.do=function(jsPath,conf,oa){
 	otherAg=oa;
 	jsPath=path.normalize(jsPath);
 	var seaOutPut=getToPath("sea").outPut;
-	if(!checkFile(seaOutPut)){
-		downloadOnly("sea.js","开始下载基础模块sea.js","基础模块sea.js下载成功");
+	if(!cacheFuc.isCache(null,seaOutPut)){
+		downloadOnline("sea.js","开始下载基础模块sea.js","基础模块sea.js下载成功");
 	}
 	if(otherAg["-online"]){
-		downloadOnly(jsPath,"开始下载线上资源"+jsPath,"线上资源"+jsPath+"下载成功");
+		downloadOnline(jsPath,"开始下载线上资源"+jsPath,"线上资源"+jsPath+"下载成功");
 	}else{
 		if(jsPath.indexOf(".js")!=-1){
 			pro.len++;
@@ -40,7 +48,7 @@ exports.do=function(jsPath,conf,oa){
 		}
 	}
 }
-var	downloadDeps=function(superJs) {
+var	downloadDeps=function(superJs,isOnlineJs) {
 		var	depsList=new function(){
 				var list=[],length=0;
 				this.plus=function () {
@@ -52,6 +60,7 @@ var	downloadDeps=function(superJs) {
 				this.show=function(array,level){
 					array=array||list;
 					level=level||0;
+					if(array==list&&isOnlineJs)array=array[0].deps;
 					for(var i=0,l=array.length;i<l;i++){
 						var a=array[i];
 						console.log(getSpace(level)+a.name);
@@ -68,7 +77,7 @@ var	downloadDeps=function(superJs) {
 				}
 			}(),
 			afterDownLoad=function (error) {
-				var isOver=depsList.reduce()==0;
+				var isOver=(depsList.reduce()==0);
 				if(error)errorFuc.main(superJs,error);
 				if(isOver){
 					console.log((superJs+(errorFuc.hasError(superJs)?"加载完毕!但发生了错误":"所有依赖模块加载完毕!")+pro.getNow()).green);
@@ -76,12 +85,26 @@ var	downloadDeps=function(superJs) {
 						console.log("其依赖关系如下:");
 						depsList.show();
 					}
-					if(pro.val>=pro.len){
-						console.log('构建任务全部完毕!'.green);
-						console.log('提示: sealoader -v 可检测sealoader最新版本'.yellow);
-						errorFuc.show();
-						process.exit();
+					pro.isOver();
+				}
+			},
+			downloadAll=function(fileName,depsListLevel){
+				var level=[];
+				depsList.pushLevel(depsListLevel,fileName,level);
+				download(fileName,function(error,jsPath){
+					if(error){
+						afterDownLoad(error);
+					}else{
+						main(jsPath,level,afterDownLoad);
 					}
+				});
+				var otherDeps=config.otherDeps[path.basename(fileName,".js")];
+				if(otherDeps){
+					if(typeof otherDeps=="string")otherDeps=[otherDeps];
+					otherDeps.forEach(function(m){
+						depsList.pushLevel(level,m,null);
+						download(m,afterDownLoad);
+					});
 				}
 			},
 			main=function (jsPath,depsListLevel,callBac) {
@@ -92,23 +115,7 @@ var	downloadDeps=function(superJs) {
 						fileName=eval(fileName);
 						if(fileName.indexOf("/")==-1){
 							tmp=false;
-							var level=[];
-							depsList.pushLevel(depsListLevel,fileName,level);
-							download(fileName,function(error,jsPath){
-								if(error){
-									afterDownLoad(error);
-								}else{
-									main(jsPath,level,afterDownLoad);
-								}
-							});
-							var otherDeps=config.otherDeps[fileName];
-							if(otherDeps){
-								if(typeof otherDeps=="string")otherDeps=[otherDeps];
-								otherDeps.forEach(function(m){
-									depsList.pushLevel(level,m,null);
-									download(m,afterDownLoad);
-								});
-							}
+							downloadAll(fileName,depsListLevel);
 						}
 					})
 					if(tmp&&!callBac)console.log((superJs+"所有依赖模块加载完毕!其不依赖任何线上模块或未使用seajs依赖规范"+pro.getNow()).green);
@@ -116,7 +123,7 @@ var	downloadDeps=function(superJs) {
 				});
 			}
 		console.log(("开始获取"+superJs+"的依赖...").yellow);
-		main(superJs);
+		isOnlineJs?downloadAll(superJs):main(superJs);
 	},
 	errorFuc=new function(){
 		var errorObj={},hasError=false;
@@ -215,14 +222,22 @@ function mkdirsSync(dirpath, mode) {
 	}
 	return true;
 }
-function downloadOnly(fileName,t1,t2){
+function downloadOnline(fileName,t1,t2){
 	pro.len++;
 	console.log(t1.yellow);
-	download(fileName,function(error){
+	download(fileName,function(error,output){
 		if(error){
 			errorFuc.main(fileName,error,true);
 		}else{
-			console.log((t2+pro.getNow()).green);
+			var superJs=path.basename(output),
+				ext=path.extname(superJs);
+			if(superJs!="sea.js"&&ext==".js"){
+				console.log(t2.green);
+				downloadDeps(superJs,true);
+			}else{
+				console.log((t2+pro.getNow()).green);
+				pro.isOver();
+			}
 		}
 	})
 }
@@ -233,6 +248,7 @@ var cacheFuc=new function () {
 		cachedList.push(url);
 	}
 	this.isCache=function (url,output) {
+		url=url||config.onlinePath+"/"+output.replace(/\\/g,"/");
 		return (otherAg["-nocache"]!==false || cachedList.indexOf(url)!=-1) && checkFile(output);
 	}
 	this.addCallBac=function (url,callBac) {

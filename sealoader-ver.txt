@@ -1,4 +1,4 @@
 ﻿{
-	ver:"2.0.5",
-	intro:"更新关键字"
+	ver:"2.0.6",
+	intro:"完善进度提示\n修复依赖完整js名(含后缀)导致otherDeps不加载\n修复加载线上模块不加载其依赖的bug(-online)\n更新readMe中的附录\n具体请访问:https://www.npmjs.com/package/sealoader"
 }
