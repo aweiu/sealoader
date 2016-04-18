@@ -1,4 +1,4 @@
 ﻿{
-	ver:"2.0.7",
+	ver:"2.0.8",
 	intro:"更新github地址,可忽略\n具体请访问:https://www.npmjs.com/package/sealoader"
 }
