@@ -1,4 +1,4 @@
 ﻿{
 	ver:"2.0.7",
-	intro:"完善进度提示\n修复依赖完整js名(含后缀)导致otherDeps不加载\n修复加载线上模块不加载其依赖的bug(-online)\n修复文件加载可能不完整的bug\n优化超时处理\n更新readMe中的附录\n具体请访问:https://www.npmjs.com/package/sealoader"
+	intro:"更新github地址,可忽略\n具体请访问:https://www.npmjs.com/package/sealoader"
 }

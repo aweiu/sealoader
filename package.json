@@ -1,6 +1,6 @@
 {
   "name": "sealoader",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "seajs前端开发解决方案",
   "main": "main.js",
   "dependencies": {
@@ -18,7 +18,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/328080339/sealoader.git"
+    "url": "https://github.com/awei-yu/sealoader.git"
   },
   "author": {
     "name": "余阿伟"
