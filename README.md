@@ -10,4 +10,6 @@
 
 本插件干的事情就是一键检索项目中所有使用到的通用模块，自动下载模块的依赖，模块的依赖的依赖。。<br>
 
-[文档地址](https://aweiu.com/documents/sealoader/)
+## 文档
+
+https://aweiu.com/documents/sealoader/
